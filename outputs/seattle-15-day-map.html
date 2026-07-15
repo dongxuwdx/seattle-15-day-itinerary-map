@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>西雅图 15 天参考行程地图</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>body{margin:0;font:15px -apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;color:#18212b;background:#f5f7f8}#map{height:42vh;min-height:310px;position:sticky;top:0;z-index:2}.wrap{max-width:780px;margin:auto;padding:18px}.hero{background:#083344;color:#fff;border-radius:18px;padding:22px;margin-bottom:15px}.hero h1{margin:0;font-size:26px}.hero p{margin:8px 0 0;color:#c7e5e8;line-height:1.55}.note{background:#fff8e8;border-left:4px solid #e29b22;padding:12px 14px;border-radius:8px;margin:14px 0;line-height:1.6}.day{background:#fff;border-radius:15px;padding:16px;margin:12px 0;box-shadow:0 2px 8px #18334b12;cursor:pointer}.day:hover{box-shadow:0 5px 17px #18334b26}.head{display:flex;gap:10px;align-items:baseline}.num{font-weight:700;color:#0f766e}.day h2{font-size:18px;margin:0}.area{color:#55707a;margin:6px 0}.route{margin:8px 0 0;line-height:1.65}.tag{display:inline-block;background:#e1f3f1;color:#07635d;padding:2px 8px;border-radius:99px;font-size:12px;margin-right:5px}.weather{display:inline-block;background:#eaf2ff;color:#225db1;padding:2px 8px;border-radius:99px;font-size:12px}.footer{color:#60727a;line-height:1.65;padding:10px 2px 30px}a{color:#087a72}</style>
+</head><body><div id="map"></div><main class="wrap"><section class="hero"><h1>西雅图 · 15 天参考行程</h1><p>市区慢游 + 4 次周边一日往返。每一天一个主区域；遇雨时优先换到标有「雨天备选」的日子。</p></section><div class="note"><strong>出发前要定的三件事：</strong>雷尼尔山和奥林匹克国家公园看天气后再锁定；奇胡利玻璃艺术园、波音未来飞行中心建议提前订票；远郊日如不开车，建议参加当天往返小团。</div><div id="days"></div><p class="footer">默认住宿锚点设为 Downtown / Pike Place 附近，方便轻轨和步行。未按具体日期、航班和酒店绑定；把地图打开后点任意日期卡片，即可查看该日路线与地图标记。</p></main><script>
+const D=[
+['D1','抵达与派克市场','Downtown · Pike Place','抵达 → Pike Place Market → Gum Wall → Waterfront → 摩天轮日落','轻松落地日',47.6097,-122.3425],
+['D2','西雅图中心','Seattle Center · Belltown','Space Needle → Chihuly Garden and Glass → MoPOP → Kerry Park 夜景','室内比例高',47.6205,-122.3493],
+['D3','市中心建筑与艺术','Downtown · First Hill','Seattle Art Museum → Pioneer Square → Central Library → Capitol Hill 晚餐','雨天备选',47.6067,-122.3325],
+['D4','国会山与志愿者公园','Capitol Hill · Madison Valley','Volunteer Park Conservatory → Asian Art Museum → 咖啡店 → Capitol Hill 夜生活','慢游 / 咖啡',47.6301,-122.3140],
+['D5','巴拉德与弗里蒙特','Ballard · Fremont','Ballard Locks → Golden Gardens → Fremont Troll → Gas Works Park','晴天优先',47.6766,-122.3867],
+['D6','派克市场深度日','Pike Place · Waterfront','市场早餐 → 口香糖墙 → Seattle Aquarium → Olympic Sculpture Park','可与 D1 对调',47.6090,-122.3420],
+['D7','贝恩布里奇岛','Bainbridge Island','Seattle Ferry → Winslow 主街 → Bloedel Reserve（预约）→ 返程看海湾','渡轮一日往返',47.6262,-122.5214],
+['D8','雷尼尔山国家公园','Mount Rainier · Paradise','早出发 → Paradise → Skyline Trail（按体力）→ Reflection Lakes → 返程','天气敏感 / 自驾或团',46.7860,-121.7350],
+['D9','恢复与华盛顿湖','Madison Park · University District','睡到自然醒 → Washington Park Arboretum → UW 校园 → University Village','雷尼尔山后放松',47.6496,-122.3040],
+['D10','奥林匹克国家公园','Olympic Peninsula','渡轮或自驾 → Hurricane Ridge → Port Angeles → 傍晚返程','天气敏感 / 早出发',47.9695,-123.4980],
+['D11','国际区与唐人街','International District · SODO','Wing Luke Museum → Uwajimaya → 西雅图中餐/日式超市 → T-Mobile Park 周边','雨天备选',47.5987,-122.3263],
+['D12','惠德比岛','Whidbey Island · Mukilteo','Mukilteo Ferry → Langley → Coupeville → Deception Pass（视时间）','自驾最顺',48.0090,-122.5100],
+['D13','波音与埃弗里特','Everett · Mukilteo','Future of Flight Aviation Center → Mukilteo Lighthouse → 海边晚餐','需确认参观时段',47.9200,-122.2740],
+['D14','西西雅图与阿尔基海滩','West Seattle · Alki','Water Taxi → Alki Beach → 远眺市中心 → Junction 逛街晚餐','晴天 / 轻松',47.5798,-122.4105],
+['D15','自由收尾与离开','Downtown · Airport','补买伴手礼 → 咖啡 → 轻轨前往 SEA 机场；如晚航班可加博物馆','最后一天不跑远',47.4435,-122.3020]
+];const map=L.map('map').setView([47.6062,-122.3321],11);L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap © CARTO'}).addTo(map);let active=[];const host=document.querySelector('#days');D.forEach((d,i)=>{let e=document.createElement('article');e.className='day';e.innerHTML=`<div class="head"><span class="num">${d[0]}</span><h2>${d[1]}</h2></div><div class="area">${d[2]}</div><div class="route">${d[3]}</div><p><span class="tag">${i<7?'市区 / 渡轮':'周边'}</span><span class="weather">${d[4]}</span></p>`;e.onclick=()=>show(i);host.append(e)});function show(i){active.forEach(x=>map.removeLayer(x));active=[];let d=D[i],m=L.marker([d[5],d[6]]).addTo(map).bindPopup(`<b>${d[0]} · ${d[1]}</b><br>${d[3]}`).openPopup();active.push(m);map.setView([d[5],d[6]],i===7||i===9||i===11?9:13);location.hash='day-'+(i+1)}show(0);</script></body></html>

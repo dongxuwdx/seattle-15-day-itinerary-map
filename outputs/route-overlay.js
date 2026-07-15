@@ -83,6 +83,46 @@
     iconAnchor: [21, 21]
   });
 
+  const englishDays = [
+    ['Arrival & Pike Place Market', 'Easy arrival day', [['After arrival', 'Start with the market and nearby streets at an easy pace.'], ['Early evening', 'A quick photo stop below the market.'], ['Before sunset', 'Take a relaxed walk along the waterfront.'], ['Sunset', 'Ride for Elliott Bay views if the weather is clear.']]],
+    ['Seattle Center', 'Mostly indoors', [['Morning', 'Reserve a timed entry in advance.'], ['Midday', 'Located next to the Space Needle.'], ['Afternoon', 'Explore exhibits on music and popular culture.'], ['Evening', 'See the classic Seattle skyline view.']]],
+    ['Downtown Architecture & Art', 'Good for rain', [['Morning', 'Make this the main indoor stop on a rainy day.'], ['Midday', 'Explore brick-lined streets and local cafés.'], ['Afternoon', 'Visit for the architecture itself.'], ['Evening', 'Choose from a dense mix of restaurants, bars, and cafés.']]],
+    ['Capitol Hill & Volunteer Park', 'Slow day · Coffee', [['Morning', 'A compact greenhouse that also works well in wet weather.'], ['Midday', 'Conveniently located beside the park.'], ['Afternoon', 'Climb for city views when the tower is open.'], ['Evening', 'Pick a neighborhood restaurant or cocktail bar.']]],
+    ['Ballard & Fremont', 'Best in clear weather', [['Morning', 'Watch boats pass through the locks and visit the fish ladder.'], ['Afternoon', 'Enjoy the beach and Olympic Mountains views.'], ['Early evening', 'Stop at this playful neighborhood landmark.'], ['Sunset', 'See the downtown skyline from the lakeshore.']]],
+    ['Pike Place Market in Depth', 'Can swap with D1', [['Breakfast', 'Arrive early to avoid the midday crowds.'], ['Morning', 'Explore the indoor marine exhibits.'], ['Afternoon', 'Walk through this free outdoor sculpture park.'], ['Evening', 'Relax by the water or return to the market for dinner.']]],
+    ['Bainbridge Island', 'Ferry day trip', [['Morning', 'Check the ferry schedule in advance.'], ['Morning', 'Walk into Winslow after arriving on the island.'], ['Midday', 'Browse the main street and stop for lunch.'], ['Afternoon', 'Reserve ahead; without a car, spend more time around Winslow instead.']]],
+    ['Mount Rainier National Park', 'Weather-sensitive · Car or tour', [['Early morning', 'Arrive as early as possible and bring warm, waterproof layers.'], ['Morning', 'Hike only as far as your energy and conditions allow.'], ['Afternoon', 'Reflections are best when the air is calm.'], ['Return trip', 'Make a short stop before leaving the mountain.']]],
+    ['Recovery Day by Lake Washington', 'Relax after Mount Rainier', [['Morning', 'Take a slow walk on shaded garden trails.'], ['Afternoon', 'Explore the campus and see Suzzallo Library.'], ['Evening', 'Shop, have dinner, and restock essentials.']]],
+    ['Olympic National Park', 'Weather-sensitive · Early start', [['Early morning', 'Take the ferry if driving; join a tour if you do not have a car.'], ['Morning', 'Enjoy ridge views after confirming the road is open.'], ['Midday', 'Stop for lunch and supplies.'], ['Afternoon', 'Spend time by the lake before returning.']]],
+    ['International District & Chinatown', 'Good for rain', [['Morning', 'Learn about Asian American immigrant history.'], ['Midday', 'Browse the Japanese grocery store and prepared-food counters.'], ['Afternoon', 'Walk the neighborhood and stop for dessert.'], ['Evening', 'Add a game only if one is scheduled.']]],
+    ['Whidbey Island', 'Best by car', [['Morning', 'Take the ferry to the island.'], ['Midday', 'Have lunch in this small waterfront town.'], ['Afternoon', 'Explore the historic district and old wharf.'], ['Evening', 'Visit only if time allows, and leave before dark.']]],
+    ['Boeing & Everett', 'Confirm tour times', [['Morning', 'Confirm factory-tour times and ID requirements in advance.'], ['Afternoon', 'Visit the waterfront lighthouse and bay.'], ['Evening', 'Have dinner by the water or take a beach walk.']]],
+    ['West Seattle & Alki Beach', 'Clear weather · Easy day', [['Morning', 'Take the water taxi to West Seattle.'], ['Midday', 'Enjoy the beach, city views, and lunch.'], ['Afternoon', 'Take an easy walk along the shoreline.'], ['Evening', 'Browse local shops and have dinner.']]],
+    ['Flexible Finish & Departure', 'Stay close on departure day', [['Morning', 'Pick up coffee, chocolate, or last-minute souvenirs.'], ['Midday', 'Visit if your flight leaves later in the day.'], ['Before departure', 'Take Link Line 1 to the airport.'], ['Departure', 'Allow extra time for an international flight.']]]
+  ];
+
+  document.documentElement.lang = 'en';
+  document.title = 'Seattle 15-Day Itinerary Map';
+  document.querySelector('.hero').innerHTML = '<h1>Seattle · 15-Day Itinerary</h1><p>Open a day card to see each stop and suggested time, then use Apple Maps for leg-by-leg directions or individual places.</p>';
+  document.querySelector('.note').innerHTML = '<strong>Travel note:</strong> Walk, take Link light rail, or use buses on city days. For Mount Rainier, Olympic National Park, and Whidbey Island, rent a car or book a day tour. Swap mountain and island days based on weather, and check roads, ferries, and park conditions before leaving.';
+  document.querySelector('.footer').textContent = 'This itinerary assumes a hotel near Downtown or Pike Place. Places and routes are suggestions; Apple Maps opens in a new window so you can adjust for traffic, energy, and opening hours.';
+
+  D.forEach((day, dayIndex) => {
+    const english = englishDays[dayIndex];
+    day.t = english[0];
+    day.w = english[1];
+    day.p.forEach((stop, stopIndex) => {
+      stop[0] = english[2][stopIndex][0];
+      stop[4] = english[2][stopIndex][1];
+    });
+
+    const card = document.querySelectorAll('.day')[dayIndex];
+    card.innerHTML = `<div class="head"><span class="num">${day.n}</span><h2>${day.t}</h2></div><div class="area">${day.a}</div><div class="route">${day.p.map(stop => stop[1]).join(' → ')}</div><p><span class="tag">${dayIndex < 7 ? 'Walking / Ferry' : 'Driving / Day Trip'}</span><span class="weather">${day.w}</span></p><section class="details">${day.p.map((stop, stopIndex) => {
+      const legButton = stopIndex === 0 ? '' : `<a class="btn routebtn" target="_blank" rel="noopener" href="${appleLeg(day.p[stopIndex - 1], stop, dayIndex < 7)}">Directions ${stopIndex} → ${stopIndex + 1}</a>`;
+      return `<div class="stop"><strong>${stopIndex + 1}. ${stop[1]}</strong> <span class="time">${stop[0]}</span><p>${stop[4]}</p><a class="btn" target="_blank" rel="noopener" href="${applePlace(stop[1], stop[2], stop[3])}">Open in Apple Maps</a>${legButton}</div>`;
+    }).join('')}</section>`;
+  });
+
   show = async function (dayIndex) {
     const currentRequest = ++requestId;
     marks.forEach(layer => map.removeLayer(layer));

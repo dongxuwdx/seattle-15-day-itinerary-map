@@ -42,6 +42,19 @@
     return decodePolyline(data.trip.legs[0].shape);
   };
 
+  // Drive by default. Walk only when adjacent stops are genuinely close.
+  const legDistanceKm = (from, to) => {
+    const radians = value => value * Math.PI / 180;
+    const latitudeDelta = radians(to[2] - from[2]);
+    const longitudeDelta = radians(to[3] - from[3]);
+    const fromLatitude = radians(from[2]);
+    const toLatitude = radians(to[2]);
+    const haversine = Math.sin(latitudeDelta / 2) ** 2 +
+      Math.cos(fromLatitude) * Math.cos(toLatitude) * Math.sin(longitudeDelta / 2) ** 2;
+    return 6371 * 2 * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine));
+  };
+  const prefersWalking = (from, to) => legDistanceKm(from, to) <= 0.8;
+
   // Keep the arrow a fixed visual distance before the destination pin.
   const pointBeforeEnd = (path, gap = 31) => {
     let remaining = gap;
@@ -117,8 +130,9 @@
     });
 
     const card = document.querySelectorAll('.day')[dayIndex];
-    card.innerHTML = `<div class="head"><span class="num">${day.n}</span><h2>${day.t}</h2></div><div class="area">${day.a}</div><div class="route">${day.p.map(stop => stop[1]).join(' → ')}</div><p><span class="tag">${dayIndex < 7 ? 'Walking / Ferry' : 'Driving / Day Trip'}</span><span class="weather">${day.w}</span></p><section class="details">${day.p.map((stop, stopIndex) => {
-      const legButton = stopIndex === 0 ? '' : `<a class="btn routebtn" target="_blank" rel="noopener" href="${appleLeg(day.p[stopIndex - 1], stop, dayIndex < 7)}">Directions ${stopIndex} → ${stopIndex + 1}</a>`;
+    card.innerHTML = `<div class="head"><span class="num">${day.n}</span><h2>${day.t}</h2></div><div class="area">${day.a}</div><div class="route">${day.p.map(stop => stop[1]).join(' → ')}</div><p><span class="tag">Drive by default · Walk short legs</span><span class="weather">${day.w}</span></p><section class="details">${day.p.map((stop, stopIndex) => {
+      const walking = stopIndex > 0 && prefersWalking(day.p[stopIndex - 1], stop);
+      const legButton = stopIndex === 0 ? '' : `<a class="btn routebtn" target="_blank" rel="noopener" href="${appleLeg(day.p[stopIndex - 1], stop, walking)}">${walking ? 'Walk' : 'Drive'} ${stopIndex} → ${stopIndex + 1}</a>`;
       return `<div class="stop"><strong>${stopIndex + 1}. ${stop[1]}</strong> <span class="time">${stop[0]}</span><p>${stop[4]}</p><a class="btn" target="_blank" rel="noopener" href="${applePlace(stop[1], stop[2], stop[3])}">Open in Apple Maps</a>${legButton}</div>`;
     }).join('')}</section>`;
   });
@@ -134,7 +148,7 @@
 
     const legs = await Promise.all(points.slice(0, -1).map(async (from, index) => {
       try {
-        return await fetchLeg(from, points[index + 1], dayIndex < 7);
+        return await fetchLeg(from, points[index + 1], prefersWalking(day.p[index], day.p[index + 1]));
       } catch (_) {
         return [from, points[index + 1]];
       }
